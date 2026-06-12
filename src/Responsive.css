@@ -1,0 +1,189 @@
+@media (min-width: 900px) {
+  .phone-frame:has(.lab-panel) {
+    width: min(100%, 980px);
+    display: grid;
+    grid-template-columns: minmax(360px, 440px) minmax(0, 1fr);
+    align-items: start;
+    gap: 20px;
+  }
+
+  .lab-panel {
+    margin-top: 0;
+  }
+}
+
+@media (max-width: 899px) {
+  .app-shell:has(.reconstructed-panel) {
+    padding-bottom: calc(230px + env(safe-area-inset-bottom));
+  }
+
+  .review-workspace {
+    position: sticky;
+    top: max(0px, env(safe-area-inset-top));
+    z-index: 5;
+  }
+
+  .image-review {
+    gap: 8px;
+    padding: 10px 10px 0;
+  }
+
+  .review-intro strong {
+    font-size: 14px;
+  }
+
+  .review-intro span {
+    font-size: 12px;
+  }
+
+  .magnifier-stage {
+    height: 148px;
+  }
+
+  .source-grid-stage {
+    max-height: 190px;
+  }
+
+  .source-cell-cutout {
+    min-height: 48px;
+    max-height: 82px;
+  }
+
+  .magnifier-lens {
+    width: 128px;
+    height: 128px;
+  }
+
+  .magnifier-handle,
+  .magnifier-control {
+    display: none;
+  }
+
+  .verification-card {
+    max-height: 46svh;
+    overflow: auto;
+    padding: 10px;
+  }
+
+  .risk-card {
+    padding: 10px;
+  }
+
+  .risk-card h3 {
+    font-size: 28px;
+  }
+
+  .reconstructed-panel {
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .mobile-row-strip {
+    display: grid;
+  }
+
+  .reconstructed-scroll {
+    max-height: 38svh;
+    overflow: auto;
+  }
+
+  .reconstructed-table {
+    width: max(100%, 700px);
+  }
+
+  .reconstructed-table th,
+  .reconstructed-table td {
+    min-width: 74px;
+    height: 38px;
+    padding: 4px;
+  }
+
+  .reconstructed-cell-button {
+    min-height: 32px;
+  }
+
+  .cell-inspector {
+    position: fixed;
+    right: 10px;
+    bottom: max(10px, env(safe-area-inset-bottom));
+    left: 10px;
+    z-index: 10;
+    max-width: 440px;
+    max-height: min(46svh, 310px);
+    margin: 0 auto;
+    overflow: auto;
+    padding: 10px;
+    box-shadow: 0 12px 34px rgba(23, 54, 43, 0.22);
+  }
+
+  .cell-inspector-head strong {
+    font-size: 13px;
+  }
+
+  .cell-inspector p {
+    display: none;
+  }
+
+  .cell-evidence-grid {
+    grid-template-columns: 54px minmax(0, 1fr);
+    font-size: 10px;
+  }
+
+  .cell-crop-preview {
+    min-height: 46px;
+    max-height: 72px;
+  }
+
+  .cell-edit-actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .cell-edit-actions button {
+    justify-content: center;
+    min-height: 40px;
+    padding: 7px 8px;
+  }
+}
+
+@media (max-width: 380px) {
+  .app-shell {
+    padding-right: 10px;
+    padding-left: 10px;
+  }
+
+  .hero-panel {
+    padding-right: 14px;
+    padding-left: 14px;
+  }
+
+  .segmented-control button {
+    min-width: 40px;
+    padding-right: 4px;
+    padding-left: 4px;
+  }
+
+  .entry-row {
+    grid-template-columns: 42px minmax(0, 1fr) auto;
+    padding-right: 9px;
+    padding-left: 9px;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
