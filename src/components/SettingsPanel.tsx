@@ -36,8 +36,8 @@ export function SettingsPanel({
         <div className="model-lock">
           <ShieldCheck size={18} />
           <div>
-            <strong>Gemini 3.5 Flash</strong>
-            <span>深度识别与三阶段复核已开启</span>
+            <strong>OpenAI 兼容接口</strong>
+            <span>{settings.model || '填写模型名'} / 三阶段复核</span>
           </div>
         </div>
         <div className="field">
@@ -55,9 +55,18 @@ export function SettingsPanel({
           <input
             id="api-base-url"
             type="url"
-            placeholder="https://api.openai.com"
+            placeholder="https://api.openai.com/v1"
             value={settings.apiBaseUrl}
             onChange={(event) => onUpdateSettings({ apiBaseUrl: event.target.value })}
+          />
+        </div>
+        <div className="field">
+          <label htmlFor="api-model">模型名</label>
+          <input
+            id="api-model"
+            placeholder="gpt-4o / gemini-2.5-flash / qwen-vl-max"
+            value={settings.model}
+            onChange={(event) => onUpdateSettings({ model: event.target.value })}
           />
         </div>
       </div>
@@ -173,6 +182,10 @@ export function SettingsPanel({
             <option value="chatCompletions">OpenAI 兼容接口</option>
             <option value="responses">Responses 接口</option>
           </select>
+          <p className="field-hint">
+            兼容接口会请求 <code>/v1/chat/completions</code>；API 地址可填域名或完整到
+            <code>/v1</code>。
+          </p>
         </div>
         <PromptManager
           prompt={prompt}

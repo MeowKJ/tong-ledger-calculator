@@ -49,12 +49,6 @@ import type {
   VerificationStatus,
 } from '../types'
 
-const STABILITY_BENCHMARK_RUNS = Array.from({ length: STABILITY_RUNS }, (_, index) => ({
-  label: `稳定性 ${index + 1}/${STABILITY_RUNS}`,
-  model: RECOGNITION_MODEL,
-  qualityMode: RECOGNITION_QUALITY,
-}))
-
 export function useLedgerApp() {
   const [settings, setSettings] = useState<AppSettings>(() => loadSettings())
   const [imageUrl, setImageUrl] = useState(() => loadLastImage())
@@ -87,6 +81,16 @@ export function useLedgerApp() {
 
   const prompt = useMemo(() => activePrompt(settings), [settings])
   const activePaperTemplate = useMemo(() => getActivePaperTemplate(settings), [settings])
+  const activeModel = settings.model.trim() || RECOGNITION_MODEL
+  const stabilityBenchmarkRuns = useMemo(
+    () =>
+      Array.from({ length: STABILITY_RUNS }, (_, index) => ({
+        label: `稳定性 ${index + 1}/${STABILITY_RUNS}`,
+        model: activeModel,
+        qualityMode: RECOGNITION_QUALITY,
+      })),
+    [activeModel],
+  )
   const normalizeLedgerResult = (nextResult: RecognitionResult) =>
     normalizeResultCells(applyPaperTemplateRules(nextResult, activePaperTemplate), activePaperTemplate)
   const recognitionPrompt = useMemo(
@@ -119,7 +123,7 @@ export function useLedgerApp() {
     setSettings((current) => ({
       ...current,
       ...patch,
-      model: RECOGNITION_MODEL,
+      model: patch.model ?? current.model,
       qualityMode: RECOGNITION_QUALITY,
     }))
   }
@@ -260,7 +264,7 @@ export function useLedgerApp() {
         apiMode: settings.apiMode,
         imageDataUrl,
         preprocessedImageDataUrl,
-        model: RECOGNITION_MODEL,
+        model: activeModel,
         prompt: recognitionPrompt,
         qualityMode: RECOGNITION_QUALITY,
       })
@@ -271,7 +275,7 @@ export function useLedgerApp() {
           apiMode: settings.apiMode,
           benchmark: nextBenchmark,
           durationMs: Date.now() - startedAt,
-          model: RECOGNITION_MODEL,
+          model: activeModel,
           qualityMode: RECOGNITION_QUALITY,
           status: 'success',
         })
@@ -284,7 +288,7 @@ export function useLedgerApp() {
           apiMode: settings.apiMode,
           durationMs: Date.now() - startedAt,
           error: message,
-          model: RECOGNITION_MODEL,
+          model: activeModel,
           qualityMode: RECOGNITION_QUALITY,
           status: 'error',
         })
@@ -316,7 +320,7 @@ export function useLedgerApp() {
     let bestBenchmark: BenchmarkEvaluation | null = null
 
     try {
-      for (const candidate of STABILITY_BENCHMARK_RUNS) {
+      for (const candidate of stabilityBenchmarkRuns) {
         setBenchmarkProgress(candidate.label)
         const startedAt = Date.now()
 

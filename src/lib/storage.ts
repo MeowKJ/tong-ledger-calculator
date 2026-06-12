@@ -15,9 +15,9 @@ const MODEL_RUNS_KEY = 'tong-ledger-model-runs-v1'
 const MAX_MODEL_RUNS = 20
 
 export const DEFAULT_SETTINGS: AppSettings = {
-  apiBaseUrl: 'https://api.openai.com',
+  apiBaseUrl: 'https://api.openai.com/v1',
   apiKey: '',
-  apiMode: 'responses',
+  apiMode: 'chatCompletions',
   model: RECOGNITION_MODEL,
   qualityMode: RECOGNITION_QUALITY,
   selectedPromptId: DEFAULT_PROMPTS[0].id,
@@ -42,7 +42,7 @@ export function loadSettings(): AppSettings {
     return {
       ...DEFAULT_SETTINGS,
       ...parsed,
-      model: RECOGNITION_MODEL,
+      model: parsed.model?.trim() || DEFAULT_SETTINGS.model,
       qualityMode: RECOGNITION_QUALITY,
       prompts,
       selectedPromptId: parsed.selectedPromptId ?? prompts[0].id,
@@ -88,9 +88,7 @@ export function loadModelRuns(): ModelRunRecord[] {
     const raw = localStorage.getItem(MODEL_RUNS_KEY)
     if (!raw) return []
     const parsed = JSON.parse(raw)
-    return Array.isArray(parsed)
-      ? (parsed as ModelRunRecord[]).filter((record) => record.model === RECOGNITION_MODEL)
-      : []
+    return Array.isArray(parsed) ? (parsed as ModelRunRecord[]) : []
   } catch {
     return []
   }

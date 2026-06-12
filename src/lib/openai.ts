@@ -342,6 +342,64 @@ function buildApiUrl(baseUrl: string, path: string) {
   return `${base}${path}`
 }
 
+function shouldRetryChatCompletionWithoutResponseFormat(status: number, errorText: string) {
+  if (status !== 400 && status !== 422) return false
+  return /response_format|json_object|unsupported|not supported|invalid/i.test(errorText)
+}
+
+async function fetchChatCompletionText({
+  apiBaseUrl,
+  apiKey,
+  body,
+  outputLabel,
+}: {
+  apiBaseUrl: string
+  apiKey: string
+  body: Record<string, unknown>
+  outputLabel: string
+}) {
+  const request = async (requestBody: Record<string, unknown>) =>
+    fetch(buildApiUrl(apiBaseUrl, '/v1/chat/completions'), {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody),
+    })
+
+  const response = await request(body)
+  if (response.ok) {
+    const payload = (await response.json()) as unknown
+    const text = readChatCompletionText(payload)
+    if (!text) throw new Error(`Chat Completions response did not include ${outputLabel}.`)
+    return text
+  }
+
+  const errorText = await response.text()
+  if (
+    'response_format' in body &&
+    shouldRetryChatCompletionWithoutResponseFormat(response.status, errorText)
+  ) {
+    const fallbackBody = { ...body }
+    delete fallbackBody.response_format
+    const fallbackResponse = await request(fallbackBody)
+    if (fallbackResponse.ok) {
+      const payload = (await fallbackResponse.json()) as unknown
+      const text = readChatCompletionText(payload)
+      if (!text) throw new Error(`Chat Completions response did not include ${outputLabel}.`)
+      return text
+    }
+
+    const fallbackErrorText = await fallbackResponse.text()
+    throw new Error(
+      fallbackErrorText || errorText || `Chat Completions request failed: ${fallbackResponse.status}`,
+    )
+  }
+
+  throw new Error(errorText || `Chat Completions request failed: ${response.status}`)
+}
+
 function buildRecognitionInstruction(prompt: SmartPrompt, includeSchema: boolean) {
   const lines = [
     '你是 tong账本计算器 的票据识别引擎。',
@@ -773,7 +831,7 @@ async function extractVisualTargetsWithChatCompletions({
   model: string
   prompt: SmartPrompt
 }) {
-  const body = {
+  const body: Record<string, unknown> = {
     model,
     messages: [
       {
@@ -798,23 +856,12 @@ async function extractVisualTargetsWithChatCompletions({
     temperature: 0,
   }
 
-  const response = await fetch(buildApiUrl(apiBaseUrl, '/v1/chat/completions'), {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(body),
+  const text = await fetchChatCompletionText({
+    apiBaseUrl,
+    apiKey,
+    body,
+    outputLabel: 'visual extraction output',
   })
-
-  if (!response.ok) {
-    const errorText = await response.text()
-    throw new Error(errorText || `Chat Completions request failed: ${response.status}`)
-  }
-
-  const payload = (await response.json()) as unknown
-  const text = readChatCompletionText(payload)
-  if (!text) throw new Error('Chat Completions response did not include visual extraction output.')
 
   return parseJson<VisualExtractionResult>(text)
 }
@@ -832,7 +879,7 @@ async function createCalculationProgramWithChatCompletions({
   model: string
   prompt: SmartPrompt
 }) {
-  const body = {
+  const body: Record<string, unknown> = {
     model,
     messages: [
       {
@@ -846,23 +893,12 @@ async function createCalculationProgramWithChatCompletions({
     temperature: 0,
   }
 
-  const response = await fetch(buildApiUrl(apiBaseUrl, '/v1/chat/completions'), {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(body),
+  const text = await fetchChatCompletionText({
+    apiBaseUrl,
+    apiKey,
+    body,
+    outputLabel: 'calculation program output',
   })
-
-  if (!response.ok) {
-    const errorText = await response.text()
-    throw new Error(errorText || `Chat Completions request failed: ${response.status}`)
-  }
-
-  const payload = (await response.json()) as unknown
-  const text = readChatCompletionText(payload)
-  if (!text) throw new Error('Chat Completions response did not include calculation program output.')
 
   return parseJson<CalculationProgram>(text)
 }
@@ -988,7 +1024,7 @@ async function recognizeWithChatCompletions({
         ? buildAuditInstruction(prompt, firstResult, true)
         : buildRecognitionInstruction(prompt, true)
 
-  const body = {
+  const body: Record<string, unknown> = {
     model,
     messages: [
       {
@@ -1034,23 +1070,12 @@ async function recognizeWithChatCompletions({
     temperature: 0,
   }
 
-  const response = await fetch(buildApiUrl(apiBaseUrl, '/v1/chat/completions'), {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(body),
+  const text = await fetchChatCompletionText({
+    apiBaseUrl,
+    apiKey,
+    body,
+    outputLabel: 'message content',
   })
-
-  if (!response.ok) {
-    const errorText = await response.text()
-    throw new Error(errorText || `Chat Completions request failed: ${response.status}`)
-  }
-
-  const payload = (await response.json()) as unknown
-  const text = readChatCompletionText(payload)
-  if (!text) throw new Error('Chat Completions response did not include message content.')
 
   return parseRecognitionJson(text)
 }

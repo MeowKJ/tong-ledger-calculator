@@ -5,7 +5,7 @@
 ## 功能
 
 - 手机拍照入口：`capture="environment"` 优先拉起后置摄像头。
-- BYOK：API Key、接口地址、模型和 prompt 保存在当前浏览器的 `localStorage`，不会写入构建产物。
+- BYOK：API Key、OpenAI 兼容接口地址、模型和 prompt 保存在当前浏览器的 `localStorage`，不会写入构建产物。
 - 智能 prompt：内置手写账本、购物小票、AA 分摊三种模板，可编辑保存。
 - 图片对照：AI 返回相对框选位置，UI 用绿色/黄色/红色表示置信度。
 - 不确定字符：单独虚线框和候选字符提示。
@@ -36,6 +36,13 @@ pnpm build
 
 API Key 不需要也不应该放进 GitHub Secrets 或源码。用户打开页面后，在设置里填写自己的 API 地址和 Key，
 这些信息只保存在当前浏览器本地。换设备、换浏览器或清理站点数据后需要重新填写。
+
+默认接口模式为 OpenAI 兼容的 Chat Completions：
+
+- API 地址可填 `https://api.openai.com/v1`，也可填兼容服务的 `/v1` 地址。
+- 模型名由用户填写，例如 `gpt-4o`、`gemini-2.5-flash`、`qwen-vl-max` 等支持图片输入的模型。
+- 程序会请求 `/v1/chat/completions`。如果兼容服务不支持 `response_format: json_object`，会自动去掉该字段重试一次。
+- 如果使用 OpenAI Responses API，可在设置里把接口格式切换为 `Responses 接口`。
 
 注意：浏览器本地保存 Key 适合个人自用和受信任设备。共享电脑、浏览器扩展、XSS 或第三方兼容接口仍可能读取
 浏览器里的本地数据；如果要给多人生产使用，应改为后端代理保存 Key。
